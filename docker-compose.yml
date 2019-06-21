@@ -1,0 +1,141 @@
+version: '3'
+services:
+  nginx:
+    container_name: mynginx
+    image: nginx:1.14.1
+    restart: always
+    ports:
+      - "8081:80"
+    links:
+      - php5fpm
+    volumes:
+      - ./nginx:/etc/nginx
+      - ./wwwroot:/usr/share/nginx/html
+  php7cli:
+    container_name: myphp7cli
+    build: ./php7cli
+    image: php7cli
+    restart: always
+    ports:
+      - "9501:9501"
+    volumes:
+      - ./wwwroot:/home
+    command: sleep 86400  
+    #command: php /home/sd3_demo/bin/start_swoole_server.php start
+  php7fpm:
+    container_name: myphp7fpm
+    build: ./php7fpm
+    image: php7fpm
+    restart: always
+    ports:
+      - "9001:9000"
+    #links:
+    #  - redis
+    #  - memcached
+    volumes:
+      - ./wwwroot:/usr/share/nginx/html
+  php5fpm:
+    container_name: myphp5fpm
+    build: ./php5fpm
+    image: php5fpm
+    restart: always
+    ports:
+      - "9002:9000"
+    links:
+      - redis
+      - memcached
+      - phpmyadmin
+    volumes:
+      - ./wwwroot:/usr/share/nginx/html
+  redis:
+    container_name: myredis
+    image: redis:5.0.0
+    restart: always
+    ports:
+      - "6380:6379"
+    volumes:
+      - ./redis/data:/data
+      - ./redis/conf:/etc/redis/redis.conf
+    command: redis-server /etc/redis/redis.conf/myredis.conf
+  redisweb:
+      container_name: myredisweb
+      build: ./redisweb
+      environment:
+        - ADMIN_USER=redis
+        - ADMIN_PASS=123456
+        - REDIS_1_HOST=redis
+        - REDIS_1_PORT=6379
+        - REDIS_1_AUTH=123456
+      ports:
+        - "9987:80"
+      depends_on:
+        - redis
+  memcached:
+    container_name: mymemcached
+    image: bitnami/memcached:1.5.12
+    restart: always
+    ports:
+      - "11212:11211"
+    environment:
+      - MEMCACHED_CACHE_SIZE=128
+  mongodb:
+    container_name: mymongodb
+    image: bitnami/mongodb:4.0.10
+    restart: always
+    ports:
+      - "27018:27017"
+    volumes:
+      - ./mongodb/data:/bitnami
+  mongoweb:
+    container_name: mymongoweb
+    image: mongo-express:0.49.0
+    restart: always
+    ports:
+      - 8811:8081
+    links:
+      - mongodb:mongo
+    environment:
+      ME_CONFIG_OPTIONS_EDITORTHEME: 3024-night
+  mysql:
+    image: mysql:5.6
+    container_name: mysql
+    restart: always
+    ports:
+      - "3307:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: "123456"
+    volumes:
+      - ./mysql/conf:/etc/mysql/conf.d
+      - ./mysql/data:/val/lib/mysql
+      - ./mysql/logs:/logs
+  phpmyadmin:
+    container_name: myphpadmin
+    image: phpmyadmin/phpmyadmin:4.8.3
+    restart: always
+    ports:
+      - "8899:80"
+    environment:
+      PMA_ARBITRARY: 1
+      PMA_HOST: 127.0.0.1
+      PMA_PORT: 3306
+      PMA_USER: root
+      PMA_PASSWORD: 123456
+  nodejs:
+    container_name: mynodejs
+    build: ./nodejs
+    image: nodejs
+    restart: always
+    ports:
+      - "3001:3000"
+    volumes:
+      - ./wwwroot:/app
+    command: sleep 86400
+  dockerweb:
+      container_name: mydockerweb
+      build: ./dockerweb
+      restart: always
+      volumes:
+        - /var/run/docker.sock:/var/run/docker.sock
+      ports:
+        - "9005:9000"
+
