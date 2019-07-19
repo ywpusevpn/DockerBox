@@ -116,7 +116,7 @@ RUN cd ${SRC_DIR}/php-${PHP_VERSION} \
 ADD install/composer-${COMPOSER_VERSION}.tar.gz ${SRC_DIR}/
 RUN cd ${SRC_DIR}/composer-${COMPOSER_VERSION} \
     && mv composer.phar /usr/local/bin/composer \
-    && composer config -g repositories.packagist composer https://packagist.laravel-china.org \
+    && composer config -g repositories.packagist composer https://mirrors.aliyun.com/composer \
     && composer self-update --clean-backups
 
 #  hiredis
