@@ -22,6 +22,7 @@ ENV LIBEVENT_VERSION 2.1.8
 ENV EVENT_VERSION 2.4.1
 ENV PHPINOTIFY_VERSION 0.1.6
 ENV MONGODB_VERSION 1.5.1
+ENV MONGO_VERSION 1.6.16
 ENV MSGPACK_VERSION 0.5.7
 ENV TIDEWAYS_VERSION 4.1.6
 
@@ -94,7 +95,7 @@ RUN cd ${SRC_DIR}/phpredis-${PHPREDIS_VERSION} \
 ADD install/swoole-src-${SWOOLE_VERSION}.tar.gz ${SRC_DIR}/
 RUN cd ${SRC_DIR}/swoole-src-${SWOOLE_VERSION} \
     && phpize \
-    && ./configure --with-php-config=${PHP_DIR}/bin/php-config --enable-async-redis --enable-openssl --enable-mysqlnd --enable-coroutine \
+    && ./configure --with-php-config=${PHP_DIR}/bin/php-config --enable-async-redis --enable-openssl --enable-mysqlnd \
     && make clean > /dev/null \
     && make \
     && make install \
@@ -241,6 +242,18 @@ RUN cd ${SRC_DIR}/mongodb-${MONGODB_VERSION} \
     && echo "extension=mongodb.so" > ${INIT_FILE}/mongodb.ini \
     && rm -f ${SRC_DIR}/mongodb-${MONGODB_VERSION}.tar.gz \
     && rm -rf ${SRC_DIR}/mongodb-${MONGODB_VERSION}
+
+#   mongo
+ADD install/mongo-${MONGO_VERSION}.tgz ${SRC_DIR}/
+RUN cd ${SRC_DIR}/mongo-${MONGO_VERSION} \
+    && phpize \
+    && ./configure --with-php-config=${PHP_DIR}/bin/php-config \
+    && make clean > /dev/null \
+    && make \
+    && make install \
+    && echo "extension=mongo.so" > ${INIT_FILE}/mongo.ini \
+    && rm -f ${SRC_DIR}/mongo-${MONGO_VERSION}.tgz \
+    && rm -rf ${SRC_DIR}/mongo-${MONGO_VERSION}
 
 #  inotify
 ADD install/inotify-${PHPINOTIFY_VERSION}.tar.gz ${SRC_DIR}/

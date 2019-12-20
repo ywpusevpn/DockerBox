@@ -1,16 +1,15 @@
-FROM php:7.1-fpm
-
+FROM php:7.2-fpm
+RUN usermod -u 1000 www-data
 LABEL maintainer="<1129610361@qq.com>"
 
 ENV TIMEZONE Asia/Shanghai
-ENV SWOOLE_VERSION 4.2.6
 ENV SRC_DIR /home
 ENV PHP_DIR /usr/local
 ENV INIT_FILE /usr/local/etc/php/conf.d
-ENV COMPOSER_VERSION 1.7.3
+ENV COMPOSER_VERSION 1.8.5
 ENV HIREDIS_VERSION 0.13.3
 ENV PHPREDIS_VERSION 3.1.6
-ENV SWOOLE_VERSION 4.3.5
+ENV SWOOLE_VERSION 4.4.3
 ENV RABBITMQ_VERSION 0.8.0
 ENV AMQP_VERSION 1.9.3
 ENV IMAGEMAGICK_VERSION 7.0.8
@@ -63,7 +62,9 @@ RUN pecl channel-update pecl.php.net \
 # install composer
 ADD install/composer-${COMPOSER_VERSION}.tar.gz ${SRC_DIR}/
 RUN cd ${SRC_DIR}/composer-${COMPOSER_VERSION} \
+    && chmod 755 composer.phar \
     && mv composer.phar /usr/local/bin/composer \
+    && chmod 755 /usr/local/bin/composer \
     && composer config -g repositories.packagist composer https://mirrors.aliyun.com/composer \
     && composer self-update --clean-backups
 
@@ -161,7 +162,7 @@ RUN cd ${SRC_DIR}/libmemcached-${LIBMEMCACHED_VERSION} \
     && rm -f ${SRC_DIR}/libmemcached-${LIBMEMCACHED_VERSION}.tar.gz \
     && rm -rf ${SRC_DIR}/libmemcached-${LIBMEMCACHED_VERSION}
 
-#   php-memcached
+#   memcached
 ADD install/memcached-${MEMCACHED_VERSION}.tar.gz ${SRC_DIR}/
 RUN cd ${SRC_DIR}/php-memcached-${MEMCACHED_VERSION} \
     && phpize \

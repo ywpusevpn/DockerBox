@@ -45,6 +45,7 @@ services:
       - redis
       - memcached
       - phpmyadmin
+      - mongodb
     volumes:
       - ./wwwroot:/usr/share/nginx/html
   redis:
@@ -80,7 +81,7 @@ services:
       - MEMCACHED_CACHE_SIZE=128
   mongodb:
     container_name: mymongodb
-    image: bitnami/mongodb:4.0.10
+    image: mongo
     restart: always
     ports:
       - "27018:27017"
@@ -93,7 +94,7 @@ services:
     ports:
       - 8811:8081
     links:
-      - mongodb:mongo
+      - mongodb
     environment:
       ME_CONFIG_OPTIONS_EDITORTHEME: 3024-night
   mysql:
@@ -108,6 +109,43 @@ services:
       - ./mysql/conf:/etc/mysql/conf.d
       - ./mysql/data:/val/lib/mysql
       - ./mysql/logs:/logs
+  proxysql:
+    image: proxysql/proxysql:2.0.8
+    container_name: myproxysql
+    restart: always
+    ports:
+      - "6033:6032"
+    #environment:
+      #MONITOR_CONFIG_CHANGE: "true"
+      #MYSQL_ROOT_PASSWORD: "123456"
+      #MYSQL_PROXY_USER: "proxyuser"
+      #MYSQL_PROXY_PASSWORD: "123456"
+    volumes:
+      - ./proxysql/etc/proxysql.cnf:/etc/proxysql.cnf
+  mastersql:
+    image: mysql:5.6
+    container_name: mastermysql
+    ports:
+      - "3308:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: "123456"
+      MYSQL_DATABASE: "my_app"
+    volumes:
+      - ./mysql/master/conf:/etc/mysql/conf.d
+      - ./mysql/master/data:/val/lib/mysql
+      - ./mysql/master/logs:/logs
+  slaversql:
+    image: mysql:5.6
+    container_name: slavermysql
+    ports:
+      - "3309:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: "123456"
+      MYSQL_DATABASE: "my_app"
+    volumes:
+      - ./mysql/slaver/conf:/etc/mysql/conf.d
+      - ./mysql/slaver/data:/val/lib/mysql
+      - ./mysql/slaver/logs:/logs
   phpmyadmin:
     container_name: myphpadmin
     image: phpmyadmin/phpmyadmin:4.8.3
