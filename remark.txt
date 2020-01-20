@@ -1,0 +1,34 @@
+show master status;
+
+show slave status;
+
+start slave;
+
+stop slave;
+
+CREATE USER 'slave'@'%' IDENTIFIED BY '123456';
+GRANT REPLICATION SLAVE, REPLICATION CLIENT ON *.* TO 'slave'@'%';
+
+change master to master_host = '172.18.5.2',
+master_port = 3306,
+master_user = 'slave',
+master_password = '123456',
+master_log_file = 'replicas-mysql-bin.000004',
+master_log_pos = 502;
+
+CREATE TABLE `user` (
+  `id` int(11) NOT NULL AUTO_INCREMENT COMMENT '主键Id',
+  `name` varchar(255) DEFAULT NULL COMMENT '名称',
+  `age` int(11) DEFAULT NULL COMMENT '年龄',
+  `address` varchar(255) DEFAULT NULL COMMENT '地址',
+  `created_time` datetime DEFAULT NULL COMMENT '创建时间',
+  PRIMARY KEY (`id`),
+  KEY `idx_com1` (`name`,`age`,`address`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='用户表';
+
+insert into user VALUES(null,'张三',20,'四川省成都市高新区天府3街','2019-12-26 01:00:00');
+insert into user VALUES(null,'李四',25,'四川省广元市靖江区大业路4号','2019-12-01 06:00:00');
+insert into user VALUES(null,'王五',30,'四川省乐山市芳草街5号','2019-11-25 03:20:00');
+insert into user VALUES(null,'赵六',18,'四川省遂宁市大英街6号','2019-11-25 03:20:00');
+insert into user VALUES(null,'李七',40,'四川省广元市安乐街7号','2019-11-25 03:20:00');
+insert into user VALUES(null,'冯八',50,'四川省清居市永乐街8号','2019-11-25 03:20:00');

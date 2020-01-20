@@ -11,17 +11,60 @@ services:
     volumes:
       - ./nginx:/etc/nginx
       - ./wwwroot:/usr/share/nginx/html
-  php7cli:
-    container_name: myphp7cli
+  es1:
+    container_name: es1
     build: ./php7cli
     image: php7cli
     restart: always
     ports:
-      - "9501:9501"
+      - "9601:9501"
     volumes:
       - ./wwwroot:/home
-    command: sleep 86400  
-    #command: php /home/sd3_demo/bin/start_swoole_server.php start
+    networks:
+      mynet:
+        ipv4_address: 172.18.5.60
+    command:
+      - sh
+      - -c 
+      - |
+        cd /home/es3_demo
+        php easyswoole start
+  es2:
+    container_name: es2
+    build: ./php7cli
+    image: php7cli
+    restart: always
+    ports:
+      - "9602:9501"
+    volumes:
+      - ./wwwroot:/home
+    networks:
+      mynet:
+        ipv4_address: 172.18.5.61
+    command:
+      - sh
+      - -c 
+      - |
+        cd /home/es3_demo
+        php easyswoole start
+  es3:
+    container_name: es3
+    build: ./php7cli
+    image: php7cli
+    restart: always
+    ports:
+      - "9603:9501"
+    volumes:
+      - ./wwwroot:/home
+    networks:
+      mynet:
+        ipv4_address: 172.18.5.62
+    command:
+      - sh
+      - -c 
+      - |
+        cd /home/es3_demo
+        php easyswoole start
   php7fpm:
     container_name: myphp7fpm
     build: ./php7fpm
@@ -57,6 +100,9 @@ services:
     volumes:
       - ./redis/data:/data
       - ./redis/conf:/etc/redis/redis.conf
+    networks:
+      mynet:
+        ipv4_address: 172.18.5.50
     command: redis-server /etc/redis/redis.conf/myredis.conf
   redisweb:
       container_name: myredisweb
@@ -134,6 +180,9 @@ services:
       - ./mysql/master/conf:/etc/mysql/conf.d
       - ./mysql/master/data:/val/lib/mysql
       - ./mysql/master/logs:/logs
+    networks:
+      mynet:
+        ipv4_address: 172.18.5.2
   slaversql:
     image: mysql:5.6
     container_name: slavermysql
@@ -146,6 +195,9 @@ services:
       - ./mysql/slaver/conf:/etc/mysql/conf.d
       - ./mysql/slaver/data:/val/lib/mysql
       - ./mysql/slaver/logs:/logs
+    networks:
+      mynet:
+        ipv4_address: 172.18.5.3
   phpmyadmin:
     container_name: myphpadmin
     image: phpmyadmin/phpmyadmin:4.8.3
@@ -158,6 +210,26 @@ services:
       PMA_PORT: 3306
       PMA_USER: root
       PMA_PASSWORD: 123456
+  consul:
+    container_name: myconsul
+    image: consul:1.6.2
+    restart: always
+    ports:
+      - 8300:8300
+      - 8301:8301
+      - 8301:8301/udp
+      - 8302:8302
+      - 8302:8302/udp
+      - 8400:8400
+      - 8500:8500
+      - 53:53/udp
+    volumes:
+      - ./consul/data:/consul/data
+      - ./consul/conf:/consul/config
+    networks:
+      mynet:
+        ipv4_address: 172.18.5.10
+    command: agent -server -bind=0.0.0.0 -client=0.0.0.0 -node=consul_server1 -bootstrap-expect=1 -ui
   nodejs:
     container_name: mynodejs
     build: ./nodejs
@@ -169,11 +241,16 @@ services:
       - ./wwwroot:/app
     command: sleep 86400
   dockerweb:
-      container_name: mydockerweb
-      build: ./dockerweb
-      restart: always
-      volumes:
-        - /var/run/docker.sock:/var/run/docker.sock
-      ports:
-        - "9005:9000"
-
+    container_name: mydockerweb
+    build: ./dockerweb
+    restart: always
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    ports:
+      - "9005:9000"
+networks:
+  mynet:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.18.5.0/20
